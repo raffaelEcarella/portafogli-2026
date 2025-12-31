@@ -1,12 +1,187 @@
-body { font-family:'Inter',sans-serif; margin:0; padding:0; background:#f2f4f8; color:#1f2937;}
-.dark { background:#121212; color:#f2f4f8;}
-header { padding:10px; background:#2563eb; color:white; text-align:center; position:sticky; top:0;}
-.card { background:white; padding:15px; margin:10px; border-radius:10px; box-shadow:0 3px 8px rgba(0,0,0,0.1);}
-.dark .card { background:#1f1f1f; box-shadow:0 3px 8px rgba(255,255,255,0.05);}
-input, select { width:100%; padding:8px; margin:5px 0; border-radius:5px; border:1px solid #ccc;}
-button { padding:10px 15px; margin:5px 0; border:none; border-radius:5px; background:#2563eb; color:white; cursor:pointer; transition:0.3s;}
-button:hover { background:#1e40af;}
-nav { display:flex; justify-content:space-around; background:#eee; padding:10px; position:fixed; bottom:0; width:100%;}
-.saldo { font-size:2em; font-weight:700; margin:10px 0;}
-#lista div { padding:8px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; border-radius:5px; margin:5px 0;}
-.dark #lista div { border-color:#444;}
+/* Font e reset base */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background: #f2f4f8;
+  color: #1f2937;
+  min-height: 100vh;
+}
+
+.dark {
+  background: #121212;
+  color: #f2f4f8;
+}
+
+/* Header */
+header {
+  padding: 15px;
+  background: linear-gradient(90deg, #2563eb, #4f46e5);
+  color: white;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+/* Card */
+.card {
+  background: white;
+  padding: 20px;
+  margin: 15px;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.dark .card {
+  background: #1f1f1f;
+  box-shadow: 0 5px 15px rgba(255,255,255,0.05);
+}
+
+/* Inputs e select */
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1em;
+  transition: border-color 0.3s;
+}
+
+input:focus, select:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+
+/* Button */
+button {
+  padding: 12px 18px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #2563eb, #4f46e5);
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1em;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button:hover {
+  background: linear-gradient(90deg, #1e40af, #4338ca);
+  transform: translateY(-2px);
+}
+
+.dark button {
+  background: linear-gradient(90deg, #4f46e5, #2563eb);
+}
+
+.dark button:hover {
+  background: linear-gradient(90deg, #4338ca, #1e40af);
+}
+
+/* Saldo */
+.saldo {
+  font-size: 2.5em;
+  font-weight: 700;
+  margin: 15px 0;
+  text-align: center;
+  color: #2563eb;
+}
+
+.dark .saldo {
+  color: #4f46e5;
+}
+
+/* Lista movimenti */
+#lista div {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 10px;
+  margin: 5px 0;
+  transition: background 0.3s;
+}
+
+#lista div:hover {
+  background: rgba(37,99,235,0.05);
+}
+
+.dark #lista div {
+  border-color: #444;
+}
+
+.dark #lista div:hover {
+  background: rgba(79,70,229,0.1);
+}
+
+/* Nav bottom */
+nav {
+  display: flex;
+  justify-content: space-around;
+  background: #eee;
+  padding: 12px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  z-index: 10;
+}
+
+nav button {
+  flex: 1;
+  margin: 0 5px;
+}
+
+/* Login */
+#loginScreen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+#loginScreen input {
+  max-width: 300px;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+#loginScreen button {
+  max-width: 200px;
+  font-size: 1.2em;
+}
+
+/* Dark mode */
+.dark input, .dark select {
+  background: #2c2c2c;
+  border: 1px solid #555;
+  color: #f2f4f8;
+}
+
+.dark ::placeholder {
+  color: #aaa;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .card { margin: 10px 5px; padding: 15px; }
+  button { padding: 10px; font-size: 0.9em; }
+  .saldo { font-size: 2em; }
+}
