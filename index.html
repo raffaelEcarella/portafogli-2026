@@ -102,5 +102,12 @@ input, select { padding:5px; margin:5px;}
 </div>
 
 <script src="script.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('Service Worker registrato con successo!'))
+    .catch(err => console.log('Errore Service Worker:', err));
+}
+</script>
 </body>
 </html>
