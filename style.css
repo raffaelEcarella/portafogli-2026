@@ -1,0 +1,12 @@
+body { font-family:'Inter',sans-serif; margin:0; padding:0; background:#f2f4f8; color:#1f2937;}
+.dark { background:#121212; color:#f2f4f8;}
+header { padding:10px; background:#2563eb; color:white; text-align:center; position:sticky; top:0;}
+.card { background:white; padding:15px; margin:10px; border-radius:10px; box-shadow:0 3px 8px rgba(0,0,0,0.1);}
+.dark .card { background:#1f1f1f; box-shadow:0 3px 8px rgba(255,255,255,0.05);}
+input, select { width:100%; padding:8px; margin:5px 0; border-radius:5px; border:1px solid #ccc;}
+button { padding:10px 15px; margin:5px 0; border:none; border-radius:5px; background:#2563eb; color:white; cursor:pointer; transition:0.3s;}
+button:hover { background:#1e40af;}
+nav { display:flex; justify-content:space-around; background:#eee; padding:10px; position:fixed; bottom:0; width:100%;}
+.saldo { font-size:2em; font-weight:700; margin:10px 0;}
+#lista div { padding:8px; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; border-radius:5px; margin:5px 0;}
+.dark #lista div { border-color:#444;}
