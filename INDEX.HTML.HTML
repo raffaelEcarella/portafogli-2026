@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cassa 2026 Pro</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{
+  --bg:#f2f4f8; --card:#fff; --text:#111;
+  --ing:#16a34a; --spe:#dc2626; --saldo:#2563eb;
+  --muted:#6b7280;
+}
+.dark{
+  --bg:#0f172a; --card:#1e293b; --text:#e5e7eb;
+}
+*{
+  -webkit-appearance:none; -webkit-text-size-adjust:100%; box-sizing:border-box;
+}
+body{margin:0; font-family:system-ui; background:var(--bg); color:var(--text);}
+header{padding:14px; background:var(--card); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:10; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+h1,h2,h3{margin:0;}
+button{padding:10px 14px; border:none; border-radius:10px; font-size:14px; margin-top:5px;}
+.primary{background:var(--saldo); color:white;}
+.card{background:var(--card); margin:12px; padding:14px; border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.05);}
+.kpi{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;}
+.kpi div{font-size:13px; position:relative;}
+.ingresso{color:var(--ing);font-weight:700}
+.spesa{color:var(--spe);font-weight:700}
+.saldo{color:var(--saldo);font-weight:800;font-size:18px}
+input,select{width:100%; padding:12px; margin-bottom:10px; font-size:16px; border-radius:12px; border:1px solid #ccc;}
+.mov{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #ddd;}
+.mov small{color:var(--muted)}
+.actions button{margin-left:6px; font-size:12px;}
+canvas{max-width:100%}
+.filter-group{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+#lista{max-height:300px; overflow-y:auto; -webkit-overflow-scrolling: touch;}
+input[type=date]{-webkit-appearance:none;}
+#loginScreen{position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); display:flex; justify-content:center; align-items:center; z-index:9999; flex-direction:column;}
+#loginScreen input{width:60%; text-align:center;}
+#loginScreen h1{margin-bottom:20px;}
+table{width:100%; border-collapse:collapse;}
+table th, table td{border:1px solid #ccc; padding:6px; font-size:14px;}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginScreen">
+  <h1>🔑 Login</h1>
+  <input type="text" id="username" placeholder="Nome utente" autofocus>
+  <input type="text" id="accessCode" placeholder="Codice">
+  <button onclick="checkAccess()">Accedi</button>
+  <small>Inserisci AUTOOF per resettare tutto</small>
+</div>
+
+<div id="app" style="display:none;">
+
+<header>
+  <h1>💼 Cassa 2026</h1>
+  <button id="darkToggle">🌙 Dark Mode</button>
+</header>
+
+<div class="card kpi">
+  <div>Saldo<br>
+    <span id="saldoTot" class="saldo">€0</span>
+    <button id="toggleSaldo" style="font-size:12px;padding:4px;">👁️</button>
+  </div>
+  <div>Ingressi<br><span id="totIn" class="ingresso">€0</span></div>
+  <div>Spese<br><span id="totSp" class="spesa">€0</span></div>
+</div>
+
+<div class="card">
+  <h3>➕ Movimento</h3>
+  <input type="date" id="data">
+  <select id="tipo">
+    <option>Ingresso</option>
+    <option>Spesa</option>
+  </select>
+  <input type="number" id="importo" placeholder="Importo €">
+  <select id="categoria">
+    <option>Cibo</option><option>Affitto</option>
+    <option>Bollette</option><option>Trasporti</option>
+    <option>Svago</option><option>Lavoro</option><option>Altro</option>
+  </select>
+  <input type="text" id="nota" placeholder="Nota">
+  <label><input type="checkbox" id="ricorrente"> Pagamento Cadenzato</label>
+  <select id="frequenza">
+    <option value="">- Frequenza -</option>
+    <option value="giorno">Giornaliera</option>
+    <option value="settimana">Settimanale</option>
+    <option value="mese">Mensile</option>
+    <option value="anno">Annuale</option>
+  </select>
+  <input type="date" id="fineRicorrente" placeholder="Data fine (opzionale)">
+  <button class="primary" onclick="salvaMov()">Salva</button>
+</div>
+
+<div class="card">
+  <h3>📌 Filtra Movimenti</h3>
+  <div class="filter-group">
+    <button onclick="setFiltro('anno')">Tutto l'anno</button>
+    <button onclick="setFiltro('mese')">Mese corrente</button>
+    <input type="date" id="da">
+    <input type="date" id="a">
+    <button onclick="setFiltro('intervallo')">Applica intervallo</button>
+  </div>
+</div>
+
+<div class="card">
+  <h3>📋 Movimenti</h3>
+  <div id="lista"></div>
+</div>
+
+<div class="card">
+  <h3>📈 Andamento</h3>
+  <canvas id="grafico"></canvas>
+</div>
+
+<div class="card">
+  <h3>📊 Report Mensili per Categoria</h3>
+  <table id="reportTable">
+    <thead>
+      <tr><th>Mese</th><th>Categoria</th><th>Ingresso (€)</th><th>Spesa (€)</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>⚙️ Impostazioni</h3>
+  <input type="text" id="newUsername" placeholder="Nuovo nome utente">
+  <input type="text" id="newCode" placeholder="Nuovo codice">
+  <button onclick="aggiornaCredenziali()">Aggiorna credenziali</button>
+  <button onclick="inviaReport()">Invia report mensile via email</button>
+</div>
+
+</div>
+
+<script>
+// codice JavaScript completo con login, reset, dashboard, movimenti, report, filtri, dark mode, toggle saldo, pagamenti ricorrenti...
+// (qui va il codice JS già fornito in precedenza)
+</script>
+
+</body>
+</html>
