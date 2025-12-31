@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cassa 2026</title>
+<link rel="stylesheet" href="style.css">
 <style>
 :root{
   --bg:#f5f5f5; --text:#222; --card:#fff;
@@ -14,7 +15,7 @@ header{display:flex;justify-content:space-between;align-items:center;padding:12p
 .card{background:var(--card);margin:12px;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.05);}
 .section{padding-bottom:60px;}
 nav button{flex:1;background:none;border:none;padding:12px;font-size:16px;color:var(--text);}
-input,button{margin:6px 0;padding:8px;width:100%;border-radius:6px;border:1px solid #ccc;}
+input,button,select{margin:6px 0;padding:8px;width:100%;border-radius:6px;border:1px solid #ccc;}
 canvas{width:100% !important;height:200px !important;}
 .kpi{display:flex;justify-content:space-around;text-align:center;}
 #lista div{padding:6px;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;}
@@ -66,8 +67,33 @@ canvas{width:100% !important;height:200px !important;}
       </select>
       <button onclick="aggiungiMovimento()">Aggiungi</button>
     </div>
+
     <div class="card">
       <h3>📋 Lista Movimenti</h3>
+      
+      <div>
+        <label>Filtro Data:</label>
+        <select id="filtroData" onchange="gestisciPeriodoPicker()">
+          <option value="anno">Tutto l'anno</option>
+          <option value="mese">Mese corrente</option>
+          <option value="periodo">Periodo personalizzato</option>
+        </select>
+      </div>
+      <div id="periodoPicker" style="display:none;">
+        <input type="date" id="dataInizio"> a 
+        <input type="date" id="dataFine">
+        <button onclick="applicaFiltri()">Applica</button>
+      </div>
+
+      <div>
+        <label>Categoria:</label>
+        <select id="filtroCategoria" onchange="applicaFiltri()">
+          <option value="tutte">Tutte</option>
+          <option value="ingresso">Ingressi</option>
+          <option value="spesa">Spese</option>
+        </select>
+      </div>
+
       <div id="lista"></div>
     </div>
   </div>
@@ -104,128 +130,7 @@ canvas{width:100% !important;height:200px !important;}
   </nav>
 </div>
 
-<!-- JS -->
+<script src="script.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-let movimenti = JSON.parse(localStorage.getItem('movimenti')||'[]');
-let grafico;
-
-function checkAccess(){
-  const username = document.getElementById('username').value.trim();
-  const email = document.getElementById('userEmail').value.trim();
-  const code = document.getElementById('accessCode').value.trim();
-  
-  if(username.toUpperCase()==='AUTOOF'){
-    localStorage.clear(); alert('Dati resettati!'); location.reload(); return;
-  }
-  
-  let profilo = JSON.parse(localStorage.getItem('profilo'));
-  if(!profilo){
-    if(!username||!code){alert('Compila nome utente e codice'); return;}
-    profilo={nome:username,email:email,codice:code};
-    localStorage.setItem('profilo',JSON.stringify(profilo));
-  }else{
-    if(username!==profilo.nome||code!==profilo.codice){alert('Nome o codice errati!');return;}
-  }
-
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('app').style.display='block';
-  caricaProfilo(); aggiornaDashboard();
-}
-
-function apriSezione(nome){
-  ['home','movimenti','obiettivi','impostazioni'].forEach(s=>{
-    document.getElementById(s+'Section').style.display=(s===nome)?'block':'none';
-  });
-}
-
-function caricaProfilo(){
-  const p=JSON.parse(localStorage.getItem('profilo'));
-  if(p){
-    document.getElementById('profileName').value=p.nome||'';
-    document.getElementById('profileEmail').value=p.email||'';
-    document.getElementById('profileCode').value=p.codice||'';
-  }
-}
-
-function aggiornaProfilo(){
-  const nome=document.getElementById('profileName').value;
-  const email=document.getElementById('profileEmail').value;
-  const codice=document.getElementById('profileCode').value;
-  if(!nome||!email||!codice){alert('Compila tutti i campi');return;}
-  localStorage.setItem('profilo',JSON.stringify({nome,email,codice}));
-  alert('Profilo aggiornato!');
-}
-
-function resetApp(){localStorage.clear();alert('App resettata!');location.reload();}
-
-function aggiungiMovimento(){
-  const desc=document.getElementById('descMov').value;
-  const imp=parseFloat(document.getElementById('importoMov').value)||0;
-  const tipo=document.getElementById('tipoMov').value;
-  if(!desc||!imp){alert('Compila descrizione e importo');return;}
-  movimenti.push({desc,imp,tipo,data:new Date().toISOString()});
-  localStorage.setItem('movimenti',JSON.stringify(movimenti));
-  aggiornaDashboard();
-  document.getElementById('descMov').value='';document.getElementById('importoMov').value='';
-}
-
-function aggiornaDashboard(){
-  let saldo=0,ing=0,sp=0; let listaHtml='';
-  movimenti.forEach((m,i)=>{
-    listaHtml+=`<div>${m.data.substring(0,10)} - ${m.desc} - €${m.imp} 
-    <button onclick="eliminaMov(${i})">❌</button></div>`;
-    if(m.tipo==='ingresso'){saldo+=m.imp;ing+=m.imp;}else{saldo-=m.imp;sp+=m.imp;}
-  });
-  document.getElementById('saldoTot').textContent=`€${saldo}`;
-  document.getElementById('totIn').textContent=`€${ing}`;
-  document.getElementById('totSp').textContent=`€${sp}`;
-  document.getElementById('lista').innerHTML=listaHtml;
-  aggiornaObiettivi();
-  aggiornaGrafico();
-}
-
-function eliminaMov(i){movimenti.splice(i,1);localStorage.setItem('movimenti',JSON.stringify(movimenti));aggiornaDashboard();}
-
-function salvaObiettivi(){
-  const g=parseFloat(document.getElementById('obiettivoGuadagno').value)||0;
-  const s=parseFloat(document.getElementById('obiettivoSpesa').value)||0;
-  localStorage.setItem('obiettivi',JSON.stringify({guadagno:g,spesa:s}));
-  aggiornaObiettivi(); alert('Obiettivi salvati!');
-}
-
-function aggiornaObiettivi(){
-  const o=JSON.parse(localStorage.getItem('obiettivi')||'{}');
-  const saldo=parseFloat(document.getElementById('saldoTot').textContent.replace('€',''))||0;
-  let status='';
-  if(o.guadagno&&saldo>=o.guadagno) status+='🎉 Obiettivo guadagno raggiunto!<br>';
-  if(o.spesa&&saldo<=-o.spesa) status+='⚠️ Obiettivo spesa superato!<br>';
-  document.getElementById('statusObiettivi').innerHTML=status;
-}
-
-// Grafico
-function aggiornaGrafico(){
-  const ctx=document.getElementById('grafico').getContext('2d');
-  const mesi=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
-  const dati=new Array(12).fill(0);
-  movimenti.forEach(m=>{
-    const d=new Date(m.data);
-    dati[d.getMonth()]+=(m.tipo==='ingresso')?m.imp:-m.imp;
-  });
-  if(grafico) grafico.destroy();
-  grafico=new Chart(ctx,{type:'line',data:{labels:mesi,datasets:[{label:'Saldo Mensile',data:dati,borderColor:'blue',fill:false}]}});
-}
-
-// Toggle dark mode
-document.getElementById('darkToggle').addEventListener('click',()=>document.body.classList.toggle('dark'));
-
-// Toggle saldo
-document.getElementById('toggleSaldo').addEventListener('click',()=>{
-  const s=document.getElementById('saldoTot');
-  if(s.textContent!=='€•••'){s.textContent='€•••';}else{aggiornaDashboard();}
-});
-
-window.addEventListener('load',()=>{caricaProfilo();aggiornaDashboard();});
-</script>
 </body>
 </html>
