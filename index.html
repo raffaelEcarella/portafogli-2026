@@ -4,20 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cassa 2026 Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="manifest" href="manifest.json">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f2f4f8; color:#000;}
-.dark { background:#121212; color:#f2f4f8;}
-header { padding:10px; background:#2563eb; color:white; text-align:center;}
-section { padding:15px; display:none;}
-nav { display:flex; justify-content:space-around; background:#eee; padding:10px; position:fixed; bottom:0; width:100%;}
-button { padding:5px 10px; margin:5px;}
-input, select { padding:5px; margin:5px;}
-#loginScreen { display:block; padding:50px; text-align:center;}
-.toggle-btn { margin-left:5px;}
-</style>
 </head>
 <body>
 
@@ -34,68 +24,72 @@ input, select { padding:5px; margin:5px;}
 
   <header>
     <h1>Cassa 2026 Pro</h1>
-    <button id="darkToggle">🌙 Dark Mode</button>
     <button id="toggleSaldo">👁️ Toggle Saldo</button>
   </header>
 
-  <!-- SEZIONE HOME -->
+  <!-- HOME -->
   <section id="homeSection">
-    <h2>Saldo Totale</h2>
-    <p id="saldoTot">€0</p>
-    <p>Ingressi: <span id="totIn">€0</span> | Spese: <span id="totSp">€0</span></p>
-    <canvas id="grafico" width="400" height="150"></canvas>
-  </section>
-
-  <!-- SEZIONE MOVIMENTI -->
-  <section id="movimentiSection">
-    <h2>Nuovo Movimento</h2>
-    <input type="text" id="descMov" placeholder="Descrizione">
-    <input type="number" id="importoMov" placeholder="Importo">
-    <select id="tipoMov">
-      <option value="ingresso">Ingresso</option>
-      <option value="spesa">Spesa</option>
-    </select>
-    <button onclick="aggiungiMovimento()">Aggiungi</button>
-
-    <h3>Filtri</h3>
-    <select id="filtroData" onchange="gestisciPeriodoPicker()">
-      <option value="anno">Tutto l'anno</option>
-      <option value="mese">Mese corrente</option>
-      <option value="periodo">Da giorno X a giorno Y</option>
-    </select>
-    <div id="periodoPicker" style="display:none;">
-      <input type="date" id="dataInizio">
-      <input type="date" id="dataFine">
-      <button onclick="applicaFiltri()">Applica</button>
+    <div class="card">
+      <h2>Saldo Totale</h2>
+      <p id="saldoTot" class="saldo">€0</p>
+      <canvas id="grafico" width="400" height="150"></canvas>
     </div>
-    <select id="filtroCategoria" onchange="applicaFiltri()">
-      <option value="tutte">Tutte le categorie</option>
-      <option value="ingresso">Ingresso</option>
-      <option value="spesa">Spesa</option>
-    </select>
-
-    <div id="lista"></div>
   </section>
 
-  <!-- SEZIONE OBIETTIVI -->
-  <section id="obiettiviSection">
-    <h2>Obiettivi</h2>
-    <input type="number" id="obiettivoGuadagno" placeholder="Obiettivo Guadagno">
-    <input type="number" id="obiettivoSpesa" placeholder="Obiettivo Spesa">
-    <button onclick="salvaObiettivi()">Salva Obiettivi</button>
-    <div id="statusObiettivi"></div>
+  <!-- MOVIMENTI -->
+  <section id="movimentiSection">
+    <div class="card">
+      <h2>Nuovo Movimento</h2>
+      <input type="text" id="descMov" placeholder="Descrizione">
+      <input type="number" id="importoMov" placeholder="Importo">
+      <input type="date" id="dataMov">
+      <select id="tipoMov">
+        <option value="ingresso">Ingresso</option>
+        <option value="spesa">Spesa</option>
+      </select>
+      <button onclick="aggiungiMovimento()">Aggiungi</button>
+
+      <h3>Filtri</h3>
+      <select id="filtroData" onchange="gestisciPeriodoPicker()">
+        <option value="anno">Tutto l'anno</option>
+        <option value="mese">Mese corrente</option>
+        <option value="periodo">Da giorno X a giorno Y</option>
+      </select>
+      <div id="periodoPicker" style="display:none;">
+        <input type="date" id="dataInizio">
+        <input type="date" id="dataFine">
+        <button onclick="applicaFiltri()">Applica</button>
+      </div>
+      <select id="filtroCategoria" onchange="applicaFiltri()">
+        <option value="tutte">Tutte le categorie</option>
+        <option value="ingresso">Ingresso</option>
+        <option value="spesa">Spesa</option>
+      </select>
+
+      <div id="lista"></div>
+    </div>
   </section>
 
-  <!-- SEZIONE IMPOSTAZIONI -->
+  <!-- IMPOSTAZIONI -->
   <section id="impostazioniSection">
-    <h2>Impostazioni</h2>
-    <button onclick="resetApp()">Reset App (AUTOOF)</button>
+    <div class="card">
+      <h2>Impostazioni</h2>
+      <button id="darkToggle">🌙 Dark Mode</button>
+
+      <h3>Obiettivi</h3>
+      <input type="number" id="obiettivoGuadagno" placeholder="Obiettivo Guadagno">
+      <input type="number" id="obiettivoSpesa" placeholder="Obiettivo Spesa">
+      <button onclick="salvaObiettivi()">Salva Obiettivi</button>
+      <div id="statusObiettivi"></div>
+
+      <h3>Gestione App</h3>
+      <button onclick="resetApp()">Reset App (AUTOOF)</button>
+    </div>
   </section>
 
   <nav>
     <button onclick="apriSezione('home')">Home</button>
     <button onclick="apriSezione('movimenti')">Movimenti</button>
-    <button onclick="apriSezione('obiettivi')">Obiettivi</button>
     <button onclick="apriSezione('impostazioni')">Impostazioni</button>
   </nav>
 
@@ -105,8 +99,8 @@ input, select { padding:5px; margin:5px;}
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js')
-    .then(() => console.log('Service Worker registrato con successo!'))
-    .catch(err => console.log('Errore Service Worker:', err));
+    .then(() => console.log('Service Worker registrato'))
+    .catch(err => console.log(err));
 }
 </script>
 </body>
