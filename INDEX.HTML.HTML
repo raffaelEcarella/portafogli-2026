@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Cassa 2026 Pro</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#2563eb">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 :root{
   --bg:#f2f4f8; --card:#fff; --text:#111;
@@ -19,13 +20,23 @@
 *{
   -webkit-appearance:none; -webkit-text-size-adjust:100%; box-sizing:border-box;
 }
-body{margin:0; font-family:system-ui; background:var(--bg); color:var(--text);}
-header{padding:14px; background:var(--card); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:10; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-h1,h2,h3{margin:0;}
+body{
+  margin:0; font-family:system-ui; background:var(--bg); color:var(--text);
+}
+header{
+  padding:14px; background:var(--card);
+  display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:10;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+h1{font-size:18px;margin:0;text-align:center;}
 button{padding:10px 14px; border:none; border-radius:10px; font-size:14px; margin-top:5px;}
 .primary{background:var(--saldo); color:white;}
-.card{background:var(--card); margin:12px; padding:14px; border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.05);}
-.kpi{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;}
+.card{
+  background:var(--card); margin:12px; padding:14px; border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.05);
+}
+.kpi{
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; text-align:center;
+}
 .kpi div{font-size:13px; position:relative;}
 .ingresso{color:var(--ing);font-weight:700}
 .spesa{color:var(--spe);font-weight:700}
@@ -38,7 +49,10 @@ canvas{max-width:100%}
 .filter-group{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
 #lista{max-height:300px; overflow-y:auto; -webkit-overflow-scrolling: touch;}
 input[type=date]{-webkit-appearance:none;}
-#loginScreen{position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); display:flex; justify-content:center; align-items:center; z-index:9999; flex-direction:column;}
+#loginScreen{
+  position:fixed; top:0; left:0; width:100%; height:100%; background:var(--bg); display:flex;
+  justify-content:center; align-items:center; z-index:9999; flex-direction:column;
+}
 #loginScreen input{width:60%; text-align:center;}
 #loginScreen h1{margin-bottom:20px;}
 table{width:100%; border-collapse:collapse;}
@@ -47,11 +61,9 @@ table th, table td{border:1px solid #ccc; padding:6px; font-size:14px;}
 </head>
 <body>
 
-<!-- Login -->
 <div id="loginScreen">
-  <h1>🔑 Login</h1>
-  <input type="text" id="username" placeholder="Nome utente" autofocus>
-  <input type="text" id="accessCode" placeholder="Codice">
+  <h1>🔑 Inserisci Codice di Accesso</h1>
+  <input type="text" id="accessCode" placeholder="Codice" autofocus>
   <button onclick="checkAccess()">Accedi</button>
   <small>Inserisci AUTOOF per resettare tutto</small>
 </div>
@@ -129,19 +141,188 @@ table th, table td{border:1px solid #ccc; padding:6px; font-size:14px;}
   </table>
 </div>
 
-<div class="card">
-  <h3>⚙️ Impostazioni</h3>
-  <input type="text" id="newUsername" placeholder="Nuovo nome utente">
-  <input type="text" id="newCode" placeholder="Nuovo codice">
-  <button onclick="aggiornaCredenziali()">Aggiorna credenziali</button>
-  <button onclick="inviaReport()">Invia report mensile via email</button>
-</div>
-
 </div>
 
 <script>
-// codice JavaScript completo con login, reset, dashboard, movimenti, report, filtri, dark mode, toggle saldo, pagamenti ricorrenti...
-// (qui va il codice JS già fornito in precedenza)
+let movimenti = JSON.parse(localStorage.getItem("cassa2026")) || [];
+let movimentiRicorrenti = JSON.parse(localStorage.getItem("ricorrenti")) || [];
+let edit=null;
+let filtro="anno";
+
+let dark=localStorage.getItem("dark")==="1";
+let saldoVisibile = localStorage.getItem("saldoVisibile")!=="0"; 
+const darkBtn=document.getElementById("darkToggle");
+const toggleSaldoBtn=document.getElementById("toggleSaldo");
+
+function showApp(){ 
+  document.getElementById("loginScreen").style.display="none";
+  document.getElementById("app").style.display="block";
+  if(dark){ document.body.classList.add("dark"); darkBtn.innerText="☀️ Light Mode"; }
+  aggiorna();
+}
+
+function checkAccess(){
+  let code=document.getElementById("accessCode").value.trim();
+  let savedCode=localStorage.getItem("codiceAccesso");
+  if(code==="AUTOOF"){
+    if(confirm("Sei sicuro? Tutti i dati saranno cancellati!")){
+      localStorage.clear();
+      alert("Tutti i dati resettati! Ricarica la pagina.");
+      location.reload();
+    }
+  } else if(savedCode){
+    if(code===savedCode) showApp();
+    else alert("Codice errato!");
+  } else if(code.length>0){
+    // primo accesso: salva il codice
+    localStorage.setItem("codiceAccesso", code);
+    alert("Codice impostato! Usalo per i prossimi accessi.");
+    showApp();
+  } else{
+    alert("Inserisci un codice valido!");
+  }
+}
+
+darkBtn.onclick=function(){
+  document.body.classList.toggle("dark");
+  let active=document.body.classList.contains("dark");
+  localStorage.setItem("dark",active?"1":"0");
+  darkBtn.innerText=active?"☀️ Light Mode":"🌙 Dark Mode";
+}
+
+toggleSaldoBtn.onclick=function(){
+  saldoVisibile=!saldoVisibile;
+  localStorage.setItem("saldoVisibile", saldoVisibile?"1":"0");
+  aggiorna();
+}
+
+function salva(){ localStorage.setItem("cassa2026",JSON.stringify(movimenti)); }
+
+function salvaMov(){
+ let m={
+  data:data.value, tipo:tipo.value,
+  importo:+importo.value, categoria:categoria.value,
+  nota:nota.value, ricorrente:ricorrente.checked,
+  frequenza:frequenza.value, fine: fineRicorrente.value
+ };
+ if(m.ricorrente){
+   movimentiRicorrenti.push(m);
+   localStorage.setItem("ricorrenti", JSON.stringify(movimentiRicorrenti));
+ }
+ if(edit!==null){movimenti[edit]=m; edit=null;}
+ else movimenti.push(m);
+ data.value=importo.value=nota.value="";
+ ricorrente.checked=false; frequenza.value=""; fineRicorrente.value="";
+ salva(); aggiorna();
+}
+
+function modifica(i){
+ let m=movimenti[i];
+ data.value=m.data; tipo.value=m.tipo;
+ importo.value=m.importo; categoria.value=m.categoria;
+ nota.value=m.nota;
+ ricorrente.checked=m.ricorrente; frequenza.value=m.frequenza; fineRicorrente.value=m.fine;
+ edit=i;
+}
+
+function elimina(i){
+ if(confirm("Eliminare?")){
+  movimenti.splice(i,1); salva(); aggiorna();
+ }
+}
+
+function setFiltro(tipoFiltro){ filtro=tipoFiltro; aggiorna(); }
+
+function generaRicorrenti(){
+ let oggi = new Date();
+ movimentiRicorrenti.forEach(m=>{
+   let d = new Date(m.data);
+   let fine = m.fine ? new Date(m.fine) : oggi;
+   while(d <= oggi && d <= fine){
+     if(!movimenti.some(x => x.data === d.toISOString().slice(0,10) && x.nota===m.nota)){
+       movimenti.push({...m, data:d.toISOString().slice(0,10)});
+     }
+     if(m.frequenza==="giorno") d.setDate(d.getDate()+1);
+     if(m.frequenza==="settimana") d.setDate(d.getDate()+7);
+     if(m.frequenza==="mese") d.setMonth(d.getMonth()+1);
+     if(m.frequenza==="anno") d.setFullYear(d.getFullYear()+1);
+   }
+ });
+ salva();
+}
+
+let chart;
+function aggiorna(){
+ generaRicorrenti();
+ let saldo=0, inT=0, spT=0;
+ let labels=[], values=[];
+ lista.innerHTML="";
+ let oggi=new Date();
+ let inizioMese=new Date(oggi.getFullYear(),oggi.getMonth(),1);
+ let fineMese=new Date(oggi.getFullYear(),oggi.getMonth()+1,0);
+
+ // Report mensile per categoria
+ let report={};
+ function meseKey(d){ return d.getFullYear()+"-"+('0'+(d.getMonth()+1)).slice(-2); }
+
+ movimenti.forEach((m,i)=>{
+   let d=new Date(m.data);
+   let includi=false;
+   if(filtro==="anno") includi=true;
+   if(filtro==="mese") includi=d>=inizioMese && d<=fineMese;
+   if(filtro==="intervallo"){
+     let daD=new Date(da.value);
+     let aD=new Date(a.value);
+     includi=d>=daD && d<=aD;
+   }
+   if(includi){
+     saldo+=m.tipo==="Spesa"?-m.importo:m.importo;
+     if(m.tipo==="Ingresso") inT+=m.importo;
+     else spT+=m.importo;
+     labels.push(m.data); values.push(saldo);
+
+     lista.innerHTML+=`
+      <div class="mov">
+        <div>
+          <b>${m.importo}€</b>
+          <span class="${m.tipo==="Spesa"?"spesa":"ingresso"}"> ${m.tipo}</span><br>
+          <small>${m.data} • ${m.categoria}</small><br>
+          <small>${m.nota}</small>
+        </div>
+        <div class="actions">
+          <button onclick="modifica(${i})">✏️</button>
+          <button onclick="elimina(${i})">❌</button>
+        </div>
+      </div>`;
+
+     let key=meseKey(d)+"-"+m.categoria;
+     if(!report[key]) report[key]={ing:0,sp:0};
+     if(m.tipo==="Ingresso") report[key].ing+=m.importo;
+     else report[key].sp+=m.importo;
+   }
+ });
+
+ saldoTot.innerText=saldoVisibile? saldo+"€" : "●●●";
+ totIn.innerText=inT+"€";
+ totSp.innerText=spT+"€";
+
+ if(chart) chart.destroy();
+ chart=new Chart(grafico,{
+  type:"line",
+  data:{labels:labels,datasets:[{data:values,borderColor:"#3b82f6"}]},
+  options:{plugins:{legend:{display:false}},responsive:true},
+ });
+
+ // Aggiorna report
+ let tbody=document.querySelector("#reportTable tbody");
+ tbody.innerHTML="";
+ Object.keys(report).sort().forEach(k=>{
+   let [mese,cat]=k.split("-");
+   tbody.innerHTML+=`<tr><td>${mese}</td><td>${cat}</td><td>${report[k].ing}</td><td>${report[k].sp}</td></tr>`;
+ });
+}
+
+Chart.defaults.font.family = "'System', -apple-system, BlinkMacSystemFont";
 </script>
 
 </body>
