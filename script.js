@@ -2,19 +2,24 @@ let movimenti = JSON.parse(localStorage.getItem('movimenti') || '[]');
 let grafico;
 let tentativi = 0;
 
+function mostraApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  apriSezione('home');
+  applicaFiltri();
+}
+
 function checkPin() {
   const pin = document.getElementById('pinInput').value.trim().toUpperCase();
   const msg = document.getElementById('loginMsg');
 
+  if (!pin) { msg.textContent = 'Inserisci un PIN valido'; return; }
+
   if (pin === 'AUTOOF') { resetApp(); return; }
 
-  let savedPin = localStorage.getItem('appPin');
+  const savedPin = localStorage.getItem('appPin');
 
-  if (!savedPin) {
-    if (!pin) { msg.textContent = 'Inserisci un PIN valido!'; return; }
-    localStorage.setItem('appPin', pin);
-    mostraApp(); return;
-  }
+  if (!savedPin) { localStorage.setItem('appPin', pin); mostraApp(); return; }
 
   if (pin === savedPin) { mostraApp(); }
   else {
@@ -24,18 +29,11 @@ function checkPin() {
   }
 }
 
-function mostraApp() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  apriSezione('home');
-  applicaFiltri();
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('btnAccedi').addEventListener('click', checkPin);
-  document.getElementById('pinInput').addEventListener('keypress', function(e){
-    if(e.key==='Enter') checkPin();
-  });
+window.addEventListener('load', () => {
+  const btn = document.getElementById('btnAccedi');
+  const input = document.getElementById('pinInput');
+  btn.addEventListener('click', checkPin);
+  input.addEventListener('keypress', e => { if(e.key==='Enter') checkPin(); });
 });
 
 function apriSezione(nome) {
@@ -85,7 +83,7 @@ function applicaFiltri() {
     if(di && df){ inizio=new Date(di); fine=new Date(df+'T23:59:59'); }
   }
 
-  let saldo=0, ing=0, sp=0; let html='';
+  let saldo=0; let html='';
 
   movimenti.forEach((m,i)=>{
     const mData = new Date(m.data);
@@ -96,13 +94,10 @@ function applicaFiltri() {
     html += `<div>${m.data.substring(0,10)} - ${m.desc} - €${m.imp} 
     <button onclick="eliminaMov(${i})">❌</button></div>`;
 
-    if(m.tipo==='ingresso'){ saldo+=m.imp; ing+=m.imp; }
-    else { saldo-=m.imp; sp+=m.imp; }
+    saldo += (m.tipo==='ingresso')?m.imp:-m.imp;
   });
 
   document.getElementById('saldoTot').textContent=`€${saldo}`;
-  document.getElementById('totIn')?.textContent=`€${ing}`;
-  document.getElementById('totSp')?.textContent=`€${sp}`;
   listaDiv.innerHTML=html;
 
   aggiornaObiettivi();
