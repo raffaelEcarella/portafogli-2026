@@ -3,122 +3,108 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cassa 2026</title>
+<title>Cassa 2026 Pro</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-:root{--bg:#f5f5f5;--text:#222;--card:#fff;}
-body.dark{--bg:#121212;--text:#eee;--card:#1e1e1e;}
-body{margin:0;font-family:sans-serif;background:var(--bg);color:var(--text);}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--card);box-shadow:0 2px 6px rgba(0,0,0,.1);}
-.card{background:var(--card);margin:12px;padding:12px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.05);}
-.section{padding-bottom:60px;}
-nav button{flex:1;background:none;border:none;padding:12px;font-size:16px;color:var(--text);}
-input,button{margin:6px 0;padding:8px;width:100%;border-radius:6px;border:1px solid #ccc;}
-canvas{width:100% !important;height:200px !important;}
-.kpi{display:flex;justify-content:space-around;text-align:center;}
-#lista div{padding:6px;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;}
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f2f4f8; color:#000;}
+.dark { background:#121212; color:#f2f4f8;}
+header { padding:10px; background:#2563eb; color:white; text-align:center;}
+section { padding:15px; display:none;}
+nav { display:flex; justify-content:space-around; background:#eee; padding:10px; position:fixed; bottom:0; width:100%;}
+button { padding:5px 10px; margin:5px;}
+input, select { padding:5px; margin:5px;}
+#loginScreen { display:block; padding:50px; text-align:center;}
+.toggle-btn { margin-left:5px;}
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="card">
-    <h2>🔒 Inserisci PIN</h2>
-    <input type="password" id="pinInput" placeholder="PIN">
-    <button onclick="checkPin()">Accedi</button>
-    <p id="loginMsg" style="font-size:12px;color:red;"></p>
-    <p style="font-size:12px;">Inserisci AUTOOF per resettare dati</p>
-  </div>
+  <h2>Benvenuto in Cassa 2026</h2>
+  <input type="text" id="pinInput" placeholder="Inserisci PIN">
+  <button id="btnAccedi">Accedi</button>
+  <p id="loginMsg" style="color:red;"></p>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none;">
+
   <header>
-    <h1>💼 Cassa 2026</h1>
-    <button id="darkToggle">🌙</button>
+    <h1>Cassa 2026 Pro</h1>
+    <button id="darkToggle">🌙 Dark Mode</button>
+    <button id="toggleSaldo">👁️ Toggle Saldo</button>
   </header>
-  <!-- Home -->
-  <div id="homeSection" class="section">
-    <div class="card kpi">
-      <div>Saldo<br><span id="saldoTot">€0</span><button id="toggleSaldo">👁️</button></div>
-      <div>Ingressi<br><span id="totIn">€0</span></div>
-      <div>Spese<br><span id="totSp">€0</span></div>
-    </div>
-    <div class="card">
-      <h3>📈 Dashboard</h3>
-      <canvas id="grafico"></canvas>
-    </div>
-  </div>
 
-  <!-- Movimenti -->
-  <div id="movimentiSection" class="section" style="display:none;">
-    <div class="card">
-      <h3>➕ Movimento</h3>
-      <input type="text" id="descMov" placeholder="Descrizione">
-      <input type="number" id="importoMov" placeholder="Importo (€)">
-      <select id="tipoMov">
-        <option value="ingresso">Ingresso</option>
-        <option value="spesa">Spesa</option>
-      </select>
-      <button onclick="aggiungiMovimento()">Aggiungi</button>
-    </div>
+  <!-- SEZIONE HOME -->
+  <section id="homeSection">
+    <h2>Saldo Totale</h2>
+    <p id="saldoTot">€0</p>
+    <p>Ingressi: <span id="totIn">€0</span> | Spese: <span id="totSp">€0</span></p>
+    <canvas id="grafico" width="400" height="150"></canvas>
+  </section>
 
-    <div class="card">
-      <h3>📋 Lista Movimenti</h3>
-      <div>
-        <label>Filtro Data:</label>
-        <select id="filtroData" onchange="gestisciPeriodoPicker()">
-          <option value="anno">Tutto l'anno</option>
-          <option value="mese">Mese corrente</option>
-          <option value="periodo">Periodo personalizzato</option>
-        </select>
-      </div>
-      <div id="periodoPicker" style="display:none;">
-        <input type="date" id="dataInizio"> a 
-        <input type="date" id="dataFine">
-        <button onclick="applicaFiltri()">Applica</button>
-      </div>
-      <div>
-        <label>Categoria:</label>
-        <select id="filtroCategoria" onchange="applicaFiltri()">
-          <option value="tutte">Tutte</option>
-          <option value="ingresso">Ingressi</option>
-          <option value="spesa">Spese</option>
-        </select>
-      </div>
-      <div id="lista"></div>
-    </div>
-  </div>
+  <!-- SEZIONE MOVIMENTI -->
+  <section id="movimentiSection">
+    <h2>Nuovo Movimento</h2>
+    <input type="text" id="descMov" placeholder="Descrizione">
+    <input type="number" id="importoMov" placeholder="Importo">
+    <select id="tipoMov">
+      <option value="ingresso">Ingresso</option>
+      <option value="spesa">Spesa</option>
+    </select>
+    <button onclick="aggiungiMovimento()">Aggiungi</button>
 
-  <!-- Obiettivi -->
-  <div id="obiettiviSection" class="section" style="display:none;">
-    <div class="card">
-      <h3>🎯 Obiettivi</h3>
-      <input type="number" id="obiettivoGuadagno" placeholder="Obiettivo Guadagno €">
-      <input type="number" id="obiettivoSpesa" placeholder="Obiettivo Spesa €">
-      <button onclick="salvaObiettivi()">Salva Obiettivi</button>
-      <div id="statusObiettivi"></div>
+    <h3>Filtri</h3>
+    <select id="filtroData" onchange="gestisciPeriodoPicker()">
+      <option value="anno">Tutto l'anno</option>
+      <option value="mese">Mese corrente</option>
+      <option value="periodo">Da giorno X a giorno Y</option>
+    </select>
+    <div id="periodoPicker" style="display:none;">
+      <input type="date" id="dataInizio">
+      <input type="date" id="dataFine">
+      <button onclick="applicaFiltri()">Applica</button>
     </div>
-  </div>
+    <select id="filtroCategoria" onchange="applicaFiltri()">
+      <option value="tutte">Tutte le categorie</option>
+      <option value="ingresso">Ingresso</option>
+      <option value="spesa">Spesa</option>
+    </select>
 
-  <!-- Impostazioni -->
-  <div id="impostazioniSection" class="section" style="display:none;">
-    <div class="card">
-      <h3>⚙️ Impostazioni</h3>
-      <button onclick="resetApp()">Reset App (AUTOOF)</button>
-    </div>
-  </div>
+    <div id="lista"></div>
+  </section>
 
-  <!-- Menu -->
+  <!-- SEZIONE OBIETTIVI -->
+  <section id="obiettiviSection">
+    <h2>Obiettivi</h2>
+    <input type="number" id="obiettivoGuadagno" placeholder="Obiettivo Guadagno">
+    <input type="number" id="obiettivoSpesa" placeholder="Obiettivo Spesa">
+    <button onclick="salvaObiettivi()">Salva Obiettivi</button>
+    <div id="statusObiettivi"></div>
+  </section>
+
+  <!-- SEZIONE IMPOSTAZIONI -->
+  <section id="impostazioniSection">
+    <h2>Impostazioni</h2>
+    <button onclick="resetApp()">Reset App (AUTOOF)</button>
+  </section>
+
   <nav>
     <button onclick="apriSezione('home')">Home</button>
     <button onclick="apriSezione('movimenti')">Movimenti</button>
     <button onclick="apriSezione('obiettivi')">Obiettivi</button>
     <button onclick="apriSezione('impostazioni')">Impostazioni</button>
   </nav>
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="script.js"></script>
+<script>
+  document.getElementById('btnAccedi').addEventListener('click', checkPin);
+</script>
+
 </body>
 </html>
