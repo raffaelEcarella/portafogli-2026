@@ -1,26 +1,35 @@
 let movimenti=JSON.parse(localStorage.getItem('movimenti')||'[]');
 let grafico;
+let tentativi=0;
 
-// LOGIN
-function checkAccess(){
-  const username=document.getElementById('username').value.trim();
-  const email=document.getElementById('userEmail').value.trim();
-  const code=document.getElementById('accessCode').value.trim();
-  
-  if(username.toUpperCase()==='AUTOOF'){localStorage.clear();alert('Dati resettati!');location.reload();return;}
+// LOGIN PIN
+function checkPin(){
+  const pin=document.getElementById('pinInput').value.trim().toUpperCase();
+  const msg=document.getElementById('loginMsg');
 
-  let profilo=JSON.parse(localStorage.getItem('profilo'));
-  if(!profilo){
-    if(!username||!code){alert('Compila nome e codice');return;}
-    profilo={nome:username,email:email,codice:code};
-    localStorage.setItem('profilo',JSON.stringify(profilo));
-  }else{
-    if(username!==profilo.nome||code!==profilo.codice){alert('Nome o codice errati!');return;}
+  if(pin==='AUTOOF'){resetApp();return;}
+
+  let savedPin=localStorage.getItem('appPin');
+  if(!savedPin){
+    if(!pin){msg.textContent='Inserisci un PIN valido!'; return;}
+    localStorage.setItem('appPin',pin);
+    msg.textContent='PIN impostato! Accedi nuovamente';
+    document.getElementById('pinInput').value='';
+    return;
   }
 
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('app').style.display='block';
-  caricaProfilo(); aggiornaDashboard();
+  if(pin===savedPin){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('app').style.display='block';
+    applicaFiltri();
+  }else{
+    tentativi++;
+    if(tentativi>=3){
+      msg.textContent='PIN errato 3 volte! Usa AUTOOF per resettare l’app.';
+    }else{
+      msg.textContent=`PIN errato (${tentativi}/3)`;
+    }
+  }
 }
 
 // MENU
@@ -29,25 +38,6 @@ function apriSezione(nome){
     document.getElementById(s+'Section').style.display=(s===nome)?'block':'none';
   });
 }
-
-// PROFILO
-function caricaProfilo(){
-  const p=JSON.parse(localStorage.getItem('profilo'));
-  if(p){
-    document.getElementById('profileName').value=p.nome||'';
-    document.getElementById('profileEmail').value=p.email||'';
-    document.getElementById('profileCode').value=p.codice||'';
-  }
-}
-function aggiornaProfilo(){
-  const nome=document.getElementById('profileName').value;
-  const email=document.getElementById('profileEmail').value;
-  const codice=document.getElementById('profileCode').value;
-  if(!nome||!email||!codice){alert('Compila tutti i campi');return;}
-  localStorage.setItem('profilo',JSON.stringify({nome,email,codice}));
-  alert('Profilo aggiornato!');
-}
-function resetApp(){localStorage.clear();alert('App resettata!');location.reload();}
 
 // MOVIMENTI
 function aggiungiMovimento(){
@@ -149,4 +139,7 @@ document.getElementById('toggleSaldo').addEventListener('click',()=>{
   if(s.textContent!=='€•••'){s.textContent='€•••';}else{applicaFiltri();}
 });
 
-window.addEventListener('load',()=>{caricaProfilo();applicaFiltri();});
+// RESET APP
+function resetApp(){localStorage.clear();alert('App resettata!');location.reload();}
+
+window.addEventListener('load',()=>{});
